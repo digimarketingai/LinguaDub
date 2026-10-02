@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subtitling Comedy in the Age of AI | AI 時代的喜劇字幕翻譯</title>
+<style>
+:root{
+  --ink:#1e293b;--muted:#64748b;--bg:#f8fafc;--card:#ffffff;--line:#e2e8f0;
+  --accent:#c2410c;--accent-soft:#fff7ed;--teal:#0f766e;--teal-soft:#f0fdfa;
+  --blue:#1d4ed8;--blue-soft:#eff6ff;--red:#b91c1c;--red-soft:#fef2f2;
+  --green:#15803d;--green-soft:#f0fdf4;--purple:#7e22ce;--purple-soft:#faf5ff;
+  --radius:14px;--shadow:0 4px 18px rgba(15,23,42,.07);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  color:var(--ink);background:var(--bg);line-height:1.65;font-size:16px}
+a{color:var(--blue)}
+/* ---------- Language modes ---------- */
+body.mode-en [lang="zh-Hant"]{display:none!important}
+body.mode-zh [lang="en"]{display:none!important}
+body.mode-both .t>[lang="zh-Hant"]{display:block;font-size:.82em;color:var(--muted);font-weight:500;margin-top:2px}
+body.mode-both p[lang="zh-Hant"],body.mode-both li>[lang="zh-Hant"],body.mode-both div[lang="zh-Hant"]{color:#475569}
+body.mode-both li>[lang="zh-Hant"]{display:block}
+/* ---------- Header ---------- */
+header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.bar{max-width:1200px;margin:auto;display:flex;align-items:center;gap:14px;padding:10px 18px;flex-wrap:wrap}
+.brand{font-weight:800;color:var(--accent);font-size:1.05rem;white-space:nowrap}
+nav{display:flex;gap:4px;flex-wrap:wrap;flex:1}
+nav a{text-decoration:none;color:var(--ink);font-size:.86rem;padding:6px 10px;border-radius:8px}
+nav a:hover,nav a.active{background:var(--accent-soft);color:var(--accent)}
+body.mode-both nav a [lang="zh-Hant"]{display:none!important}
+.langs{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.langs button{border:0;background:#fff;padding:7px 12px;cursor:pointer;font-size:.85rem;font-family:inherit}
+.langs button.on{background:var(--accent);color:#fff}
+/* ---------- Layout ---------- */
+main{max-width:1200px;margin:auto;padding:0 18px 60px}
+section{padding:56px 0 10px;border-bottom:1px dashed var(--line)}
+h1{font-size:clamp(1.8rem,4vw,2.8rem);line-height:1.2;margin:0 0 12px}
+h2{font-size:1.7rem;margin:0 0 6px;color:var(--ink)}
+h3{font-size:1.2rem;margin:26px 0 10px}
+.kicker{color:var(--accent);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.8rem}
+.lead{font-size:1.08rem;color:#334155;max-width:860px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.card h4{margin:0 0 8px;font-size:1.02rem}
+.tag{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--blue-soft);color:var(--blue);margin:0 4px 4px 0}
+.tag.red{background:var(--red-soft);color:var(--red)}.tag.green{background:var(--green-soft);color:var(--green)}
+.tag.orange{background:var(--accent-soft);color:var(--accent)}.tag.purple{background:var(--purple-soft);color:var(--purple)}
+.note{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 10px 10px 0;margin:16px 0}
+.note.teal{border-color:var(--teal);background:var(--teal-soft)}
+.note.red{border-color:var(--red);background:var(--red-soft)}
+.hero{padding:50px 0 30px;border:0}
+.stat{text-align:center}
+.stat .num{font-size:2.2rem;font-weight:800;color:var(--accent);line-height:1.1}
+.stat small{color:var(--muted)}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;font-size:.92rem}
+th,td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:#f1f5f9;font-weight:700}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin:12px 0}
+.video{position:relative;padding-top:56.25%;border-radius:var(--radius);overflow:hidden;background:#000;box-shadow:var(--shadow)}
+.video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.src{font-size:1.05rem;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:8px 0}
+.src b{color:var(--accent)}
+.subs{background:#0f172a;color:#f8fafc;border-radius:12px;padding:16px 18px;font-family:ui-monospace,Consolas,monospace;font-size:.95rem}
+.subs .ev{border-bottom:1px solid #334155;padding:8px 0}
+.subs .ev:last-child{border:0}
+.subs .meta{color:#fbbf24;font-size:.8rem}
+svg{max-width:100%;height:auto;display:block}
+.diagram{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin:14px 0}
+.diagram figcaption{font-size:.85rem;color:var(--muted);margin-top:8px;text-align:center}
+/* Flow diagram */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px;justify-content:center}
+.node{flex:1 1 130px;max-width:170px;background:var(--blue-soft);border:2px solid #bfdbfe;border-radius:12px;padding:10px;text-align:center;font-size:.85rem;position:relative}
+.node b{display:block;font-size:.9rem}
+.node.ai{background:var(--purple-soft);border-color:#e9d5ff}
+.node.human{background:var(--accent-soft);border-color:#fed7aa}
+.node.qa{background:var(--green-soft);border-color:#bbf7d0}
+.node .ico{font-size:1.4rem}
+.arrow{align-self:center;color:#94a3b8;font-size:1.4rem;font-weight:700}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.8rem;margin-top:10px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+/* Spot the error */
+.mt-sentence{font-size:1.1rem;line-height:2.2;background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px}
+.seg{border:0;background:#fef9c3;border-bottom:3px solid #eab308;padding:2px 4px;border-radius:4px;cursor:pointer;font:inherit}
+.seg:hover{background:#fde68a}
+.seg.found{background:var(--red-soft);border-color:var(--red);text-decoration:line-through;text-decoration-color:var(--red)}
+.feedback{min-height:90px}
+.progress{height:10px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin:8px 0}
+.progress div{height:100%;background:var(--green);width:0;transition:width .4s}
+/* Diff */
+del{background:#fee2e2;color:#991b1b;text-decoration:line-through}
+ins{background:#dcfce7;color:#166534;text-decoration:none}
+/* Details accordion */
+details{background:#fff;border:1px solid var(--line);border-radius:12px;margin:10px 0;box-shadow:var(--shadow)}
+summary{cursor:pointer;padding:14px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸";color:var(--accent);transition:transform .2s}
+details[open] summary::before{transform:rotate(90deg)}
+details .body{padding:0 18px 14px}
+details ul{margin:6px 0;padding-left:20px}
+details li{margin:6px 0}
+/* Calculator */
+textarea,input[type=number]{width:100%;font:inherit;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:#fff}
+textarea{min-height:100px;font-family:ui-monospace,Consolas,monospace}
+label{font-weight:600;font-size:.9rem;display:block;margin:10px 0 4px}
+.meter{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:12px}
+.meter div{background:#f1f5f9;border-radius:10px;padding:10px;text-align:center}
+.meter b{display:block;font-size:1.4rem}
+.ok{color:var(--green)}.bad{color:var(--red)}.warn{color:#b45309}
+/* Checklist & quiz */
+.check label{font-weight:400;display:flex;gap:10px;align-items:flex-start;padding:6px 0;margin:0;cursor:pointer}
+.check input{margin-top:5px;transform:scale(1.2)}
+.q{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0}
+.q button{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;border:1px solid #cbd5e1;background:#fff;border-radius:10px;cursor:pointer;font:inherit}
+.q button:hover{background:#f8fafc}
+.q button.right{background:var(--green-soft);border-color:var(--green)}
+.q button.wrong{background:var(--red-soft);border-color:var(--red)}
+.q .exp{font-size:.9rem;color:#334155;margin-top:8px}
+.btn{display:inline-block;background:var(--accent);color:#fff;border:0;padding:10px 16px;border-radius:10px;cursor:pointer;font:inherit;text-decoration:none}
+.btn.ghost{background:#fff;color:var(--accent);border:1px solid var(--accent)}
+code,pre{font-family:ui-monospace,Consolas,monospace}
+pre{background:#0f172a;color:#e2e8f0;padding:14px;border-radius:12px;overflow-x:auto;font-size:.85rem}
+.refs li{margin:10px 0;font-size:.92rem}
+.refs .v{color:var(--green);font-weight:700}
+footer{text-align:center;color:var(--muted);font-size:.85rem;padding:30px 18px}
+@media print{header,.langs{display:none}section{page-break-inside:avoid}}
+</style>
+</head>
+<body class="mode-both">
+
+<header>
+  <div class="bar">
+    <div class="brand">🎬 SubComedy-AI <span style="color:var(--muted);font-weight:500">｜字幕喜劇與 AI</span></div>
+    <nav id="nav">
+      <a href="#home"><span lang="en">Home</span><span lang="zh-Hant">首頁</span></a>
+      <a href="#case"><span lang="en">Case Study</span><span lang="zh-Hant">案例</span></a>
+      <a href="#pun"><span lang="en">Pun</span><span lang="zh-Hant">雙關</span></a>
+      <a href="#mt"><span lang="en">MT Problems</span><span lang="zh-Hant">機翻問題</span></a>
+      <a href="#pe"><span lang="en">Post-editing</span><span lang="zh-Hant">譯後編輯</span></a>
+      <a href="#timing"><span lang="en">Timing/CPS</span><span lang="zh-Hant">時間軸</span></a>
+      <a href="#workflow"><span lang="en">Workflow & Dubbing</span><span lang="zh-Hant">流程與配音</span></a>
+      <a href="#practice"><span lang="en">Practice</span><span lang="zh-Hant">練習</span></a>
+      <a href="#refs"><span lang="en">References</span><span lang="zh-Hant">參考文獻</span></a>
+    </nav>
+    <div class="langs" role="group" aria-label="Language">
+      <button data-mode="en">EN</button>
+      <button data-mode="zh">中文</button>
+      <button data-mode="both" class="on">雙語</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ================= HOME ================= -->
+<section id="home" class="hero">
+  <div class="kicker">MA Translation & Interpreting · Audiovisual Translation Module</div>
+  <h1 class="t"><span lang="en">Subtitling Comedy in the Age of AI: MT Problems & Post-Editing Skills</span><span lang="zh-Hant">AI 時代的喜劇字幕翻譯：機器翻譯問題與譯後編輯技巧</span></h1>
+  <p class="lead" lang="en">This module uses a short Chinese stand-up clip to show what machine translation (MT) and large language models (LLMs) get wrong when they translate humour. It also teaches the professional post-editing skills needed to fix those mistakes for subtitles and AI dubbing.</p>
+  <p class="lead" lang="zh-Hant">本單元以一段中文脫口秀片段為例，說明機器翻譯（MT）與大型語言模型（LLM）翻譯幽默時常出的錯，並教授修正這些錯誤所需的專業譯後編輯技巧，涵蓋字幕與 AI 配音。</p>
+
+  <div class="grid g4" style="margin-top:22px">
+    <div class="card stat"><div class="num">6%</div><small lang="en">Best 2023 CLEF JOKER result: share of MT pun translations that kept both the wordplay and the meaning</small><small lang="zh-Hant">2023 年 CLEF JOKER 最佳成績：同時保留雙關與原意的機翻比例</small></div>
+    <div class="card stat"><div class="num">4–6×</div><small lang="en">Less technical and time effort for post-editing TV subtitles than for translating from scratch (Vincent et al., 2024)</small><small lang="zh-Hant">電視字幕譯後編輯比從零翻譯省下的技術與時間成本（Vincent 等，2024）</small></div>
+    <div class="card stat"><div class="num">42 / 16</div><small lang="en">Common maximum characters per line: English / Traditional Chinese (Netflix style guides)</small><small lang="zh-Hant">常見每行字數上限：英文／繁中（Netflix 規範）</small></div>
+    <div class="card stat"><div class="num">14.83</div><small lang="en">Target reading speed used in this case study (characters per second)</small><small lang="zh-Hant">本案例的目標閱讀速度（每秒字數）</small></div>
+  </div>
+
+  <h3 class="t"><span lang="en">🎯 Learning outcomes</span><span lang="zh-Hant">🎯 學習目標</span></h3>
+  <div class="grid g2">
+    <div class="card"><h4 class="t"><span lang="en">1. Diagnose</span><span lang="zh-Hant">1. 診斷</span></h4><p lang="en">Identify and classify MT/LLM errors in audiovisual humour using an MQM-style error list.</p><p lang="zh-Hant">以 MQM 式錯誤分類，找出並分類視聽幽默中的機翻／LLM 錯誤。</p></div>
+    <div class="card"><h4 class="t"><span lang="en">2. Repair</span><span lang="zh-Hant">2. 修正</span></h4><p lang="en">Apply light and full post-editing (ISO 18587) and know when each one fits the job.</p><p lang="zh-Hant">運用輕度與完整譯後編輯（ISO 18587），並判斷各自適用的情況。</p></div>
+    <div class="card"><h4 class="t"><span lang="en">3. Recreate humour</span><span lang="zh-Hant">3. 重現幽默</span></h4><p lang="en">Choose a pun-translation strategy (Delabastita, 1996) that keeps the joke working, not just the words.</p><p lang="zh-Hant">選擇雙關翻譯策略（Delabastita, 1996），保留笑點的效果，而不只是字面。</p></div>
+    <div class="card"><h4 class="t"><span lang="en">4. Fit the constraints</span><span lang="zh-Hant">4. 符合技術限制</span></h4><p lang="en">Meet subtitle limits (CPS, line length, segmentation) and dubbing limits (timing, naturalness) using AI tools such as LinguaDub.</p><p lang="zh-Hant">搭配 LinguaDub 等 AI 工具，符合字幕限制（每秒字數、每行字數、斷行）與配音限制（時長、自然度）。</p></div>
+  </div>
+</section>
+
+<!-- ================= CASE STUDY ================= -->
+<section id="case">
+  <div class="kicker">Case Study · 案例研究</div>
+  <h2 class="t"><span lang="en">The clip: "Zhisheng sells face masks"</span><span lang="zh-Hant">影片：「志勝賣面膜」</span></h2>
+  <p lang="en">Watch the clip first. Pay attention to the delivery: the pause before the punchline, the self-mocking tone, and how the audience reacts. Subtitles need to keep all of these.</p>
+  <p lang="zh-Hant">請先觀看影片，留意表演方式：笑點前的停頓、自嘲語氣與觀眾反應。字幕必須保留這些元素。</p>
+
+  <div class="grid g2">
+    <div>
+      <div class="video"><iframe src="https://www.youtube-nocookie.com/embed/9emYRALTOtc" title="Case study clip" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+      <p style="font-size:.85rem;color:var(--muted)"><span lang="en">If the video doesn't play here, open it on YouTube: </span><span lang="zh-Hant">若無法播放，請至 YouTube 觀看：</span><a href="https://www.youtube.com/watch?v=9emYRALTOtc" target="_blank" rel="noopener">youtube.com/watch?v=9emYRALTOtc</a></p>
+    </div>
+    <div>
+      <h4 class="t"><span lang="en">Source transcript (Simplified, as given)</span><span lang="zh-Hant">原文逐字稿（簡體原文）</span></h4>
+      <div class="src"><b>A</b> 我说志胜啊你今天负责的产品就是卖面膜，当时我都懵了。我说导演啊，就我这个长相，你让我卖面和卖膜都行……</div>
+      <div class="src"><b>B</b> 当我拿着面膜出现在直播间的时候，看直播的观众也很激动，就在那里疯狂地发弹幕，但我发现没有一条弹幕在讨论产品，全都是问号。</div>
+      <h4 class="t"><span lang="en">Traditional Chinese version</span><span lang="zh-Hant">繁體版本</span></h4>
+      <div class="src"><b>A</b> 我說志勝啊你今天負責的產品就是賣面膜，當時我都懵了。我說導演啊，就我這個長相，你讓我賣<u>麵</u>和賣膜都行……</div>
+      <div class="src"><b>B</b> 當我拿著面膜出現在直播間的時候，看直播的觀眾也很激動，就在那裡瘋狂地發彈幕，但我發現沒有一條彈幕在討論產品，全都是問號。</div>
+    </div>
+  </div>
+
+  <h3 class="t"><span lang="en">Cultural context to know first</span><span lang="zh-Hant">先了解的文化背景</span></h3>
+  <div class="grid g3">
+    <div class="card"><span class="tag orange">直播帶貨</span><h4 class="t"><span lang="en">Livestream e-commerce</span><span lang="zh-Hant">直播帶貨</span></h4><p lang="en">Hosts sell products live. Face masks are usually sold by hosts known for their good looks, which is why the job assignment is funny.</p><p lang="zh-Hant">主播即時直播賣貨；面膜通常由以顏值著稱的主播販售，所以這個安排本身就好笑。</p></div>
+    <div class="card"><span class="tag orange">彈幕 dànmù</span><h4 class="t"><span lang="en">Bullet comments</span><span lang="zh-Hant">彈幕</span></h4><p lang="en">Comments that scroll across the screen. English viewers know this as "the chat". The literal "barrage" is an MT error.</p><p lang="zh-Hant">飄過畫面的即時留言；英語觀眾熟悉的說法是「the chat」，直譯「barrage」屬於機翻錯誤。</p></div>
+    <div class="card"><span class="tag orange">？？？</span><h4 class="t"><span lang="en">"Question marks"</span><span lang="zh-Hant">「全都是問號」</span></h4><p lang="en">Viewers typing "???" to show confusion or disbelief. The visual joke is a whole screen of question marks.</p><p lang="zh-Hant">觀眾打「？？？」表示困惑或不敢置信；畫面上滿是問號就是視覺笑點。</p></div>
+  </div>
+
+  <h3 class="t"><span lang="en">Model subtitles (English)</span><span lang="zh-Hant">示範字幕（英文）</span></h3>
+  <div class="grid g2">
+    <div class="subs">
+      <div class="meta">Segment A</div>
+      <div class="ev">"Zhisheng, today you're selling face masks."</div>
+      <div class="ev">I was stunned.</div>
+      <div class="ev">"Director, with a face like mine?</div>
+      <div class="ev">I could sell noodles.<br>I could sell plastic wrap.</div>
+      <div class="ev"><i>But face masks?</i>"</div>
+    </div>
+    <div class="subs">
+      <div class="meta">Segment B · durations calculated for 14.83 CPS</div>
+      <div class="ev"><span class="meta">#1 · 53 ch · 3.574 s</span><br>When I showed up on the livestream<br>holding face masks,</div>
+      <div class="ev"><span class="meta">#2 · 56 ch · 3.776 s</span><br>the viewers got really excited.<br>The chat was going crazy.</div>
+      <div class="ev"><span class="meta">#3 · 46 ch · 3.102 s</span><br>But not a single comment<br>was about the product.</div>
+      <div class="ev"><span class="meta">#4 · 26 ch · 1.753 s</span><br>It was all question marks.</div>
+    </div>
+  </div>
+  <div class="note"><span lang="en">⚠️ The durations are <b>calculated</b> to reach 14.83 CPS. They aren't the clip's real timecodes. In the timing exercise, students should time each subtitle against the actual audio and shot changes.</span><span lang="zh-Hant">⚠️ 上述時長是為了達到每秒 14.83 字而<b>計算</b>出來的，並非影片實際時間碼。練習時請依實際音訊與鏡頭切換重新上字幕時間軸。</span></div>
+</section>
+
+<!-- ================= PUN ================= -->
+<section id="pun">
+  <div class="kicker">Humour Translation · 幽默翻譯</div>
+  <h2 class="t"><span lang="en">Anatomy of the 面膜 pun</span><span lang="zh-Hant">「面膜」雙關解析</span></h2>
+  <p lang="en">The joke splits a compound word in two. Each half means something ordinary on its own, but together they mean "face mask", the one product a self-described plain-looking man shouldn't sell. MT can't see this, because it translates the meaning of the compound and loses the split.</p>
+  <p lang="zh-Hant">這個笑話把一個複合詞拆成兩半：每一半單獨看都很普通，合起來卻是「面膜」，正是一個自認長相平凡的人不該賣的產品。機器翻譯看不出這點，因為它翻的是整個複合詞的意思，拆字的巧思因此消失。</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 800 360" role="img" aria-label="Pun anatomy diagram">
+      <defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#94a3b8"/></marker></defs>
+      <rect x="300" y="15" width="200" height="70" rx="14" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+      <text x="400" y="45" text-anchor="middle" font-size="24" font-weight="800" fill="#c2410c">面膜 miànmó</text>
+      <text x="400" y="70" text-anchor="middle" font-size="14" fill="#334155">face mask（保養品）</text>
+      <line x1="350" y1="85" x2="200" y2="125" stroke="#94a3b8" stroke-width="2" marker-end="url(#ar)"/>
+      <line x1="450" y1="85" x2="600" y2="125" stroke="#94a3b8" stroke-width="2" marker-end="url(#ar)"/>
+      <rect x="110" y="128" width="180" height="56" rx="12" fill="#eff6ff" stroke="#1d4ed8" stroke-width="2"/>
+      <text x="200" y="155" text-anchor="middle" font-size="20" font-weight="700" fill="#1d4ed8">面 miàn</text>
+      <text x="200" y="176" text-anchor="middle" font-size="12" fill="#334155">split 1 · 拆字一</text>
+      <rect x="510" y="128" width="180" height="56" rx="12" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+      <text x="600" y="155" text-anchor="middle" font-size="20" font-weight="700" fill="#0f766e">膜 mó</text>
+      <text x="600" y="176" text-anchor="middle" font-size="12" fill="#334155">split 2 · 拆字二</text>
+      <line x1="170" y1="184" x2="100" y2="220" stroke="#94a3b8" stroke-width="2" marker-end="url(#ar)"/>
+      <line x1="230" y1="184" x2="300" y2="220" stroke="#94a3b8" stroke-width="2" marker-end="url(#ar)"/>
+      <rect x="20" y="222" width="160" height="48" rx="10" fill="#fff" stroke="#cbd5e1"/>
+      <text x="100" y="243" text-anchor="middle" font-size="14" font-weight="700">face 臉</text>
+      <text x="100" y="261" text-anchor="middle" font-size="11" fill="#64748b">"this face of mine" 長相</text>
+      <rect x="220" y="222" width="170" height="48" rx="10" fill="#fff" stroke="#cbd5e1"/>
+      <text x="305" y="243" text-anchor="middle" font-size="14" font-weight="700">noodles 麵（简：面）</text>
+      <text x="305" y="261" text-anchor="middle" font-size="11" fill="#64748b">Trad. script: different character</text>
+      <line x1="600" y1="184" x2="600" y2="220" stroke="#94a3b8" stroke-width="2" marker-end="url(#ar)"/>
+      <rect x="500" y="222" width="200" height="48" rx="10" fill="#fff" stroke="#cbd5e1"/>
+      <text x="600" y="243" text-anchor="middle" font-size="14" font-weight="700">film / wrap 薄膜・保鮮膜</text>
+      <text x="600" y="261" text-anchor="middle" font-size="11" fill="#64748b">ordinary, no looks needed</text>
+      <rect x="120" y="292" width="560" height="56" rx="14" fill="#fef2f2" stroke="#b91c1c" stroke-width="2"/>
+      <text x="400" y="315" text-anchor="middle" font-size="15" font-weight="700" fill="#b91c1c">賣麵 ✔ + 賣膜 ✔ ≠ 賣面膜 ✘</text>
+      <text x="400" y="337" text-anchor="middle" font-size="13" fill="#334155">Punchline = self-deprecation: "my face ≠ beauty products" 笑點＝自嘲</text>
+    </svg>
+    <figcaption>Figure 1. How the compound splits into two ordinary meanings · 圖 1：複合詞拆成兩個普通意義</figcaption>
+  </figure>
+
+  <div class="note teal"><b class="t"><span lang="en">💡 Simplified vs Traditional script</span><span lang="zh-Hant">💡 簡繁差異的教學重點</span></b>
+    <p lang="en">In Simplified Chinese, 面 means both "face" and "noodles", so the pun works in both speech and writing. In Traditional Chinese, "noodles" is written <b>麵</b>, so the pun only works by sound. If you subtitle this clip in Traditional Chinese, writing 賣麵 makes the split visible, while writing 賣面 is a typo for most Taiwanese and Hong Kong readers. Either way, the written pun is weaker, which is an extra problem for anyone localizing within Chinese.</p>
+    <p lang="zh-Hant">簡體的「面」同時指臉與麵條，因此雙關在口語和文字上都成立；繁體中，麵條寫作<b>「麵」</b>，雙關只剩讀音相同。若製作繁中字幕，寫「賣麵」能讓拆字變得清楚，寫「賣面」對臺港讀者而言則像錯字；無論哪種寫法，文字層面的雙關都會減弱，這是中文內部在地化時多出的難題。</p>
+  </div>
+
+  <h3 class="t"><span lang="en">Delabastita's pun-translation strategies, applied</span><span lang="zh-Hant">Delabastita 雙關翻譯策略應用</span></h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Strategy · 策略</th><th>Example rendering · 譯例</th><th>Effect · 效果</th></tr></thead>
+    <tbody>
+      <tr><td><b>Pun → Pun</b><br>雙關→雙關</td><td>"With this face? Sell <i>face</i> masks? I'd sell <i>Halloween</i> masks."</td><td><span class="tag green">humour kept</span> New wordplay on "mask" · 以「mask」另造雙關</td></tr>
+      <tr><td><b>Pun → Non-pun (humour kept)</b><br>雙關→非雙關（保留幽默）</td><td>"I'll sell noodles. I'll sell cling wrap. But face masks? Come on."</td><td><span class="tag green">humour kept</span> Rhythm of three + self-mockery · 三段式節奏加自嘲</td></tr>
+      <tr><td><b>Pun → Related device</b><br>雙關→相關修辭</td><td>"Director, this face sells radio ads."</td><td><span class="tag orange">changes the joke</span> New self-mocking gag · 換成另一個自嘲梗</td></tr>
+      <tr><td><b>Pun → Zero</b><br>雙關→省略</td><td>"Director, with a face like mine? Not face masks."</td><td><span class="tag red">humour flattened</span> Meaning only · 只剩意思</td></tr>
+      <tr><td><b>Editorial technique</b><br>加註</td><td>"…noodles (面) and film (膜)…" + note</td><td><span class="tag red">bad for subtitles</span> Breaks reading speed · 破壞閱讀速度</td></tr>
+      <tr><td><b>Compensation</b><br>補償</td><td>Add wordplay in a later line, e.g. "the chat was <i>mask</i>-ively confused"</td><td><span class="tag orange">use with care</span> Moves the humour elsewhere · 幽默移位</td></tr>
+    </tbody>
+  </table></div>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 800 430" role="img" aria-label="Decision tree for pun translation">
+      <defs><marker id="ar2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker></defs>
+      <g font-size="13" text-anchor="middle">
+        <rect x="250" y="10" width="300" height="56" rx="12" fill="#eff6ff" stroke="#1d4ed8" stroke-width="2"/>
+        <text x="400" y="34" font-weight="700">Is the wordplay central to the joke?</text><text x="400" y="54" fill="#475569">雙關是笑點核心嗎？</text>
+        <line x1="300" y1="66" x2="150" y2="110" stroke="#64748b" stroke-width="2" marker-end="url(#ar2)"/><text x="205" y="84" fill="#b91c1c" font-weight="700">No 否</text>
+        <line x1="500" y1="66" x2="560" y2="110" stroke="#64748b" stroke-width="2" marker-end="url(#ar2)"/><text x="555" y="84" fill="#15803d" font-weight="700">Yes 是</text>
+        <rect x="40" y="112" width="230" height="56" rx="12" fill="#f0fdf4" stroke="#15803d" stroke-width="2"/>
+        <text x="155" y="136" font-weight="700">Translate meaning, keep tone</text><text x="155" y="156" fill="#475569">譯意、保留語氣</text>
+        <rect x="420" y="112" width="340" height="56" rx="12" fill="#eff6ff" stroke="#1d4ed8" stroke-width="2"/>
+        <text x="590" y="136" font-weight="700">Is there a target-language pun that does the same job within CPS limits?</text><text x="590" y="156" fill="#475569">有同功能、且符合字數的譯語雙關？</text>
+        <line x1="520" y1="168" x2="430" y2="215" stroke="#64748b" stroke-width="2" marker-end="url(#ar2)"/><text x="455" y="190" fill="#15803d" font-weight="700">Yes 是</text>
+        <line x1="660" y1="168" x2="660" y2="215" stroke="#64748b" stroke-width="2" marker-end="url(#ar2)"/><text x="690" y="195" fill="#b91c1c" font-weight="700">No 否</text>
+        <rect x="300" y="217" width="230" height="56" rx="12" fill="#f0fdf4" stroke="#15803d" stroke-width="2"/>
+        <text x="415" y="241" font-weight="700">Pun → Pun</text><text x="415" y="261" fill="#475569">雙關→雙關</text>
+        <rect x="560" y="217" width="220" height="56" rx="12" fill="#eff6ff" stroke="#1d4ed8" stroke-width="2"/>
+        <text x="670" y="241" font-weight="700">Can the humour survive another way?</text><text x="670" y="261" fill="#475569">能以其他方式保留幽默？</text>
+        <line x1="620" y1="273" x2="520" y2="325" stroke="#64748b" stroke-width="2" marker-end="url(#ar2)"/><text x="550" y="298" fill="#15803d" font-weight="700">Yes 是</text>
+        <line x1="720" y1="273" x2="720" y2="325" stroke="#64748b" stroke-width="2" marker-end="url(#ar2)"/><text x="748" y="300" fill="#b91c1c" font-weight="700">No 否</text>
+        <rect x="330" y="327" width="290" height="70" rx="12" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+        <text x="475" y="351" font-weight="700">Pun → Non-pun humour / Compensation</text><text x="475" y="371" fill="#475569">非雙關幽默／補償</text><text x="475" y="389" fill="#64748b" font-size="11">(rhythm, irony, image, self-mockery)</text>
+        <rect x="640" y="327" width="150" height="70" rx="12" fill="#fef2f2" stroke="#b91c1c" stroke-width="2"/>
+        <text x="715" y="355" font-weight="700">Pun → Zero</text><text x="715" y="375" fill="#475569">捨棄雙關</text>
+      </g>
+    </svg>
+    <figcaption>Figure 2. Decision tree for translating wordplay in subtitles · 圖 2：字幕雙關翻譯決策樹</figcaption>
+  </figure>
+</section>
+
+<!-- ================= MT PROBLEMS ================= -->
+<section id="mt">
+  <div class="kicker">AI Translation Problems · AI 翻譯問題</div>
+  <h2 class="t"><span lang="en">What goes wrong when AI translates comedy?</span><span lang="zh-Hant">AI 翻譯喜劇時會出什麼錯？</span></h2>
+  <p lang="en">Recent research agrees on a pattern. LLMs often do better than conventional neural MT on sitcom subtitles (Chen & Hu, 2026). They still struggle with puns (CLEF JOKER), with context (Vincent et al., 2024), and with errors carried over from speech recognition into subtitles (Karakanta et al., 2022). Human post-editing is still needed.</p>
+  <p lang="zh-Hant">近期研究的結論一致：LLM 翻譯情境喜劇字幕常優於傳統神經機器翻譯（Chen & Hu, 2026），但在雙關（CLEF JOKER）、語境（Vincent 等，2024），以及語音辨識錯誤延伸到字幕（Karakanta 等，2022）等方面仍有困難，因此仍須人工譯後編輯。</p>
+
+  <div class="grid g3" id="problemCards"></div>
+
+  <h3 class="t"><span lang="en">🔍 Interactive: spot the errors in the raw MT</span><span lang="zh-Hant">🔍 互動練習：找出原始機翻中的錯誤</span></h3>
+  <p lang="en">Click each highlighted segment. Before you click, try to name the error type yourself.</p>
+  <p lang="zh-Hant">點擊每個標示片段。點擊前，請先自己判斷錯誤類型。</p>
+  <div class="mt-sentence" id="mtSentence"></div>
+  <div class="progress"><div id="prog"></div></div>
+  <div class="card feedback" id="feedback"><span lang="en">👆 Click a highlighted segment.</span><span lang="zh-Hant">👆 請點擊標示的片段。</span></div>
+
+  <figure class="diagram">
+    <div id="errChart"></div>
+    <figcaption>Figure 3. Error types found in the raw MT of segment B (11 issues) · 圖 3：B 段原始機翻錯誤類型分布（共 11 處）</figcaption>
+  </figure>
+</section>
+
+<!-- ================= POST-EDITING ================= -->
+<section id="pe">
+  <div class="kicker">Post-Editing Skills · 譯後編輯技巧</div>
+  <h2 class="t"><span lang="en">Post-editing: tactics and skills</span><span lang="zh-Hant">譯後編輯：策略與技巧</span></h2>
+
+  <div class="grid g2">
+    <div class="card" style="border-top:5px solid var(--teal)">
+      <h4 class="t"><span lang="en">Light post-editing (ISO 18587)</span><span lang="zh-Hant">輕度譯後編輯</span></h4>
+      <p lang="en"><b>Goal:</b> understandable and accurate. Fix meaning errors only and accept stiff style. Fits internal use or quick gisting.</p>
+      <p lang="zh-Hant"><b>目標：</b>可理解、正確。只修正意義錯誤，可接受生硬文風。適用於內部用途或快速了解大意。</p>
+      <div class="subs" style="font-size:.85rem">When I showed up on the livestream with face masks, the viewers were excited and posted many comments, but no comment discussed the product; all were question marks.</div>
+    </div>
+    <div class="card" style="border-top:5px solid var(--accent)">
+      <h4 class="t"><span lang="en">Full post-editing (ISO 18587)</span><span lang="zh-Hant">完整譯後編輯</span></h4>
+      <p lang="en"><b>Goal:</b> reads like a professional human translation. Covers accuracy, style, register, segmentation, timing and humour. Required for broadcast and streaming.</p>
+      <p lang="zh-Hant"><b>目標：</b>讀起來像專業人工翻譯，涵蓋正確性、文風、語域、斷句、時間軸與幽默。播出與串流平台必須採用。</p>
+      <div class="subs" style="font-size:.85rem">When I showed up on the livestream<br>holding face masks, / the viewers got really excited.<br>The chat was going crazy. / But not a single comment<br>was about the product. / It was all question marks.</div>
+    </div>
+  </div>
+
+  <h3 class="t"><span lang="en">Before → After (edit view)</span><span lang="zh-Hant">修改前後對照</span></h3>
+  <div class="card" style="font-size:1.02rem;line-height:2">
+    When I showed up <del>in the livestream booth with the mask</del> <ins>on the livestream holding face masks</ins>, the <del>audience was excited to watch the livestream, and it was there that the barrage went wild, but I found that there was no barrage discussing the product, it</del> <ins>viewers got really excited. / The chat was going crazy. / But not a single comment was about the product. / It</ins> was all question marks.
+  </div>
+
+  <h3 class="t"><span lang="en">📚 Tactics and skills by category</span><span lang="zh-Hant">📚 策略與技巧分類</span></h3>
+  <div id="tactics"></div>
+</section>
+
+<!-- ================= TIMING ================= -->
+<section id="timing">
+  <div class="kicker">Technical Constraints · 技術限制</div>
+  <h2 class="t"><span lang="en">Timing, reading speed and segmentation</span><span lang="zh-Hant">時間軸、閱讀速度與斷句</span></h2>
+  <div class="grid g2">
+    <div class="card">
+      <h4 class="t"><span lang="en">🧮 CPS calculator</span><span lang="zh-Hant">🧮 每秒字數計算器</span></h4>
+      <label class="t"><span lang="en">Subtitle text (one subtitle event, Enter = line break)</span><span lang="zh-Hant">字幕文字（單一字幕事件，Enter＝換行）</span></label>
+      <textarea id="cpsText">But not a single comment
+was about the product.</textarea>
+      <div class="grid g3" style="gap:10px">
+        <div><label class="t"><span lang="en">Duration (s)</span><span lang="zh-Hant">時長（秒）</span></label><input type="number" id="cpsDur" value="3.102" step="0.001" min="0.1"></div>
+        <div><label class="t"><span lang="en">Target CPS</span><span lang="zh-Hant">目標 CPS</span></label><input type="number" id="cpsTarget" value="14.83" step="0.01"></div>
+        <div><label class="t"><span lang="en">Max chars/line</span><span lang="zh-Hant">每行上限</span></label><input type="number" id="cpsCpl" value="42"></div>
+      </div>
+      <div class="meter" id="cpsOut"></div>
+      <p style="font-size:.82rem;color:var(--muted)" lang="en">Counts letters, spaces and punctuation, but not line breaks. Each Chinese character counts as 1.</p>
+      <p style="font-size:.82rem;color:var(--muted)" lang="zh-Hant">計入字母、空格與標點，不計換行；每個中文字算 1 字。</p>
+    </div>
+    <div class="card">
+      <h4 class="t"><span lang="en">Reference standards</span><span lang="zh-Hant">參考規範</span></h4>
+      <div class="tablewrap"><table>
+        <tr><th>Parameter · 參數</th><th>English</th><th>繁中 (TW)</th></tr>
+        <tr><td>Max chars/line 每行字數</td><td>42</td><td>16</td></tr>
+        <tr><td>Max lines 行數</td><td>2</td><td>2 (often 1 · 常為 1 行)</td></tr>
+        <tr><td>Min duration 最短時長</td><td>≈ 5/6 s (20 frames)</td><td>≈ 5/6 s</td></tr>
+        <tr><td>Max duration 最長時長</td><td>7 s</td><td>7 s</td></tr>
+        <tr><td>Reading speed 閱讀速度</td><td>15–17 cps typical · up to 20 (Netflix adult)</td><td>≈ 9 cps (Netflix adult)</td></tr>
+      </table></div>
+      <p style="font-size:.82rem;color:var(--muted)" lang="en">Figures are typical values from the Netflix Timed Text Style Guides and Díaz Cintas & Remael (2021). Always check the client's current guide.</p>
+      <p style="font-size:.82rem;color:var(--muted)" lang="zh-Hant">數值為 Netflix 字幕規範與 Díaz Cintas & Remael（2021）的常見值，請以客戶最新規範為準。</p>
+    </div>
+  </div>
+
+  <figure class="diagram">
+    <div id="timeline"></div>
+    <figcaption>Figure 4. Calculated subtitle timeline for segment B at 14.83 CPS · 圖 4：B 段以每秒 14.83 字計算的字幕時間軸</figcaption>
+  </figure>
+
+  <h3 class="t"><span lang="en">Line-break rules (segmentation)</span><span lang="zh-Hant">斷行規則</span></h3>
+  <div class="grid g2">
+    <div class="card" style="border-left:5px solid var(--green)"><span class="tag green">✔ Good</span>
+      <div class="subs" style="margin-top:8px">But not a single comment<br>was about the product.</div>
+      <p lang="en">Breaks between the subject and the predicate, and keeps phrases whole.</p><p lang="zh-Hant">在主語與謂語之間斷開，語塊完整。</p></div>
+    <div class="card" style="border-left:5px solid var(--red)"><span class="tag red">✘ Bad</span>
+      <div class="subs" style="margin-top:8px">But not a single comment was<br>about the product.</div>
+      <p lang="en">Ends the line on a verb, which separates the verb from what follows.</p><p lang="zh-Hant">行尾停在動詞，把動詞與後面的內容拆開。</p></div>
+  </div>
+</section>
+
+<!-- ================= WORKFLOW ================= -->
+<section id="workflow">
+  <div class="kicker">Workflow · 工作流程</div>
+  <h2 class="t"><span lang="en">AI + human workflow for subtitling and dubbing</span><span lang="zh-Hant">AI＋人工字幕與配音流程</span></h2>
+
+  <figure class="diagram">
+    <div class="flow">
+      <div class="node"><div class="ico">🎞️</div><b>Source video</b>原始影片</div><div class="arrow">→</div>
+      <div class="node ai"><div class="ico">🎙️</div><b>ASR</b>語音辨識<br><small>Whisper</small></div><div class="arrow">→</div>
+      <div class="node human"><div class="ico">🧑‍💻</div><b>Transcript QA</b>逐字稿校對<br><small>names, homophones</small></div><div class="arrow">→</div>
+      <div class="node ai"><div class="ico">🤖</div><b>MT / LLM</b>機器翻譯</div><div class="arrow">→</div>
+      <div class="node human"><div class="ico">✍️</div><b>Post-editing</b>譯後編輯<br><small>meaning, humour, register</small></div><div class="arrow">→</div>
+      <div class="node human"><div class="ico">⏱️</div><b>Spotting & segmentation</b>上時間軸＋斷句</div><div class="arrow">→</div>
+      <div class="node qa"><div class="ico">✅</div><b>QA</b>品管<br><small>CPS, CPL, shot changes</small></div><div class="arrow">→</div>
+      <div class="node"><div class="ico">📄</div><b>Deliver .srt/.vtt</b>交付字幕檔</div>
+    </div>
+    <div class="legend"><span style="--c:#e9d5ff">AI step · AI 步驟</span><span style="--c:#fed7aa">Human step · 人工步驟</span><span style="--c:#bbf7d0">Quality check · 品管</span><span style="--c:#bfdbfe">Input/Output · 輸入輸出</span></div>
+    <figcaption>Figure 5. Automatic subtitling workflow with human checkpoints · 圖 5：含人工檢查點的自動字幕流程</figcaption>
+  </figure>
+
+  <h3 class="t"><span lang="en">🛠️ LinguaDub Studio: AI dubbing pipeline</span><span lang="zh-Hant">🛠️ LinguaDub Studio：AI 配音流程</span></h3>
+  <p lang="en"><a href="https://github.com/digimarketingai/LinguaDub" target="_blank" rel="noopener">LinguaDub</a> is an open-source tool for AI video dubbing. It offers voice cloning, script editing, line timing control, and translations that fit each line's time slot. According to its README, the pipeline is <b>Whisper (transcribe) → MyMemory / NLLB / Google (translate) → XTTS v2 (voice clone)</b>.</p>
+  <p lang="zh-Hant"><a href="https://github.com/digimarketingai/LinguaDub" target="_blank" rel="noopener">LinguaDub</a> 是開源 AI 影片配音工具，提供聲音複製、腳本編輯、逐句時間控制，以及配合每句時段長度的翻譯。依其 README，流程為 <b>Whisper（轉錄）→ MyMemory／NLLB／Google（翻譯）→ XTTS v2（聲音複製）</b>。</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 960 300" role="img" aria-label="LinguaDub pipeline">
+      <defs><marker id="ar3" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#475569"/></marker></defs>
+      <g font-size="13" text-anchor="middle">
+        <rect x="10" y="60" width="130" height="80" rx="12" fill="#eff6ff" stroke="#1d4ed8" stroke-width="2"/>
+        <text x="75" y="92" font-weight="700">🎞️ Video in</text><text x="75" y="112" fill="#475569">輸入影片</text><text x="75" y="130" fill="#64748b" font-size="11">ffmpeg</text>
+        <line x1="140" y1="100" x2="180" y2="100" stroke="#475569" stroke-width="2" marker-end="url(#ar3)"/>
+        <rect x="182" y="60" width="140" height="80" rx="12" fill="#faf5ff" stroke="#7e22ce" stroke-width="2"/>
+        <text x="252" y="92" font-weight="700">① Whisper</text><text x="252" y="112" fill="#475569">語音轉錄 ASR</text><text x="252" y="130" fill="#64748b" font-size="11">Radford et al. 2023</text>
+        <line x1="322" y1="100" x2="362" y2="100" stroke="#475569" stroke-width="2" marker-end="url(#ar3)"/>
+        <rect x="364" y="60" width="170" height="80" rx="12" fill="#faf5ff" stroke="#7e22ce" stroke-width="2"/>
+        <text x="449" y="88" font-weight="700">② Translate</text><text x="449" y="108" fill="#475569">翻譯</text><text x="449" y="128" fill="#64748b" font-size="11">MyMemory / NLLB / Google</text>
+        <line x1="534" y1="100" x2="574" y2="100" stroke="#475569" stroke-width="2" marker-end="url(#ar3)"/>
+        <rect x="576" y="60" width="160" height="80" rx="12" fill="#faf5ff" stroke="#7e22ce" stroke-width="2"/>
+        <text x="656" y="92" font-weight="700">③ XTTS v2</text><text x="656" y="112" fill="#475569">聲音複製 TTS</text><text x="656" y="130" fill="#64748b" font-size="11">Casanova et al. 2024</text>
+        <line x1="736" y1="100" x2="776" y2="100" stroke="#475569" stroke-width="2" marker-end="url(#ar3)"/>
+        <rect x="778" y="60" width="170" height="80" rx="12" fill="#eff6ff" stroke="#1d4ed8" stroke-width="2"/>
+        <text x="863" y="92" font-weight="700">🎧 Dubbed video</text><text x="863" y="112" fill="#475569">配音成品</text>
+        <!-- Human checkpoints -->
+        <rect x="182" y="190" width="140" height="90" rx="12" fill="#fff7ed" stroke="#c2410c" stroke-width="2" stroke-dasharray="6 4"/>
+        <text x="252" y="214" font-weight="700" fill="#c2410c">🧑 Check A</text><text x="252" y="234">Fix transcript</text><text x="252" y="252" fill="#475569">校正逐字稿</text><text x="252" y="270" fill="#64748b" font-size="11">志勝? 面 vs 麵?</text>
+        <line x1="252" y1="190" x2="252" y2="142" stroke="#c2410c" stroke-width="2" marker-end="url(#ar3)"/>
+        <rect x="364" y="190" width="170" height="90" rx="12" fill="#fff7ed" stroke="#c2410c" stroke-width="2" stroke-dasharray="6 4"/>
+        <text x="449" y="214" font-weight="700" fill="#c2410c">🧑 Check B</text><text x="449" y="234">Script edit + fit slot</text><text x="449" y="252" fill="#475569">腳本編修＋符合時段</text><text x="449" y="270" fill="#64748b" font-size="11">pun, register, length</text>
+        <line x1="449" y1="190" x2="449" y2="142" stroke="#c2410c" stroke-width="2" marker-end="url(#ar3)"/>
+        <rect x="576" y="190" width="160" height="90" rx="12" fill="#fff7ed" stroke="#c2410c" stroke-width="2" stroke-dasharray="6 4"/>
+        <text x="656" y="214" font-weight="700" fill="#c2410c">🧑 Check C</text><text x="656" y="234">Listen + line timing</text><text x="656" y="252" fill="#475569">試聽＋逐句時間</text><text x="656" y="270" fill="#64748b" font-size="11">prosody, punchline pause</text>
+        <line x1="656" y1="190" x2="656" y2="142" stroke="#c2410c" stroke-width="2" marker-end="url(#ar3)"/>
+        <text x="480" y="30" font-size="15" font-weight="700" fill="#334155">AI pipeline (top) · Human post-editing checkpoints (bottom)</text>
+        <text x="480" y="48" font-size="12" fill="#64748b">上：AI 流程 · 下：人工譯後編輯檢查點</text>
+      </g>
+    </svg>
+    <figcaption>Figure 6. LinguaDub pipeline with suggested human checkpoints · 圖 6：LinguaDub 流程與建議的人工檢查點</figcaption>
+  </figure>
+
+  <div class="grid g3">
+    <div class="card"><span class="tag purple">Check A</span><h4 class="t"><span lang="en">ASR post-editing</span><span lang="zh-Hant">語音辨識校對</span></h4>
+      <ul><li><span lang="en">Correct names (志勝 / 志胜) and homophones</span><span lang="zh-Hant">校正人名（志勝／志胜）與同音字</span></li>
+      <li><span lang="en">Check sentence boundaries, because Whisper sometimes merges lines</span><span lang="zh-Hant">檢查斷句，Whisper 有時會把句子合併</span></li>
+      <li><span lang="en">Watch for invented text in silences or during laughter</span><span lang="zh-Hant">留意靜音或笑聲處被編造的文字</span></li></ul></div>
+    <div class="card"><span class="tag purple">Check B</span><h4 class="t"><span lang="en">Script post-editing</span><span lang="zh-Hant">腳本譯後編輯</span></h4>
+      <ul><li><span lang="en">Recreate the pun so it works when spoken, which is different from subtitles</span><span lang="zh-Hant">重寫雙關，使其念出來也成立（與字幕不同）</span></li>
+      <li><span lang="en">Fit the line's time slot by shortening or expanding the text</span><span lang="zh-Hant">刪減或擴充文字，使其符合每句時段</span></li>
+      <li><span lang="en">Write for the ear, with contractions and spoken rhythm</span><span lang="zh-Hant">為耳朵而寫：使用縮寫與口語節奏</span></li></ul></div>
+    <div class="card"><span class="tag purple">Check C</span><h4 class="t"><span lang="en">Audio QA</span><span lang="zh-Hant">音訊品管</span></h4>
+      <ul><li><span lang="en">Stress the punchline word ("face masks?")</span><span lang="zh-Hant">重音落在笑點詞上（"face masks?"）</span></li>
+      <li><span lang="en">Keep the comic pause before the punchline</span><span lang="zh-Hant">保留笑點前的喜劇停頓</span></li>
+      <li><span lang="en">Check for unnatural speed-ups caused by squeezing in too much text</span><span lang="zh-Hant">檢查文字過長而被迫加速的不自然語速</span></li></ul></div>
+  </div>
+
+  <h3 class="t"><span lang="en">The dubbing trade-off triangle</span><span lang="zh-Hant">配音限制三角</span></h3>
+  <div class="grid g2">
+    <figure class="diagram">
+      <svg viewBox="0 0 400 330" role="img" aria-label="Dubbing constraint triangle">
+        <polygon points="200,30 370,290 30,290" fill="#fff7ed" stroke="#c2410c" stroke-width="3"/>
+        <circle cx="200" cy="30" r="9" fill="#c2410c"/><circle cx="370" cy="290" r="9" fill="#0f766e"/><circle cx="30" cy="290" r="9" fill="#1d4ed8"/>
+        <g text-anchor="middle" font-size="13">
+          <text x="200" y="62" font-weight="700">Translation quality</text><text x="200" y="78" fill="#475569">翻譯品質（含幽默）</text>
+          <text x="315" y="318" font-weight="700" fill="#0f766e">Timing (isochrony)</text><text x="315" y="300" fill="#475569" font-size="11">時長同步</text>
+          <text x="85" y="318" font-weight="700" fill="#1d4ed8">Vocal naturalness</text><text x="85" y="300" fill="#475569" font-size="11">語音自然度</text>
+          <text x="200" y="185" font-size="12" fill="#334155">Lip-sync &amp; character length</text>
+          <text x="200" y="202" font-size="12" fill="#334155">matter less than expected</text>
+          <text x="200" y="220" font-size="11" fill="#64748b">對嘴與字數的重要性低於預期</text>
+        </g>
+      </svg>
+      <figcaption>Figure 7. Based on Brannon et al. (2023) · 圖 7：依 Brannon 等（2023）</figcaption>
+    </figure>
+    <div class="card">
+      <h4 class="t"><span lang="en">What research tells us about AI dubbing</span><span lang="zh-Hant">研究對 AI 配音的啟示</span></h4>
+      <p lang="en">Brannon et al. (2023) studied 319.57 hours of professional dubbing. Human dubbers cared more about <b>vocal naturalness and translation quality</b> than about matching character length or lip-sync. They rarely changed speaking speed or gave up translation quality to hit timing. The lesson for LinguaDub users: <b>don't cram text into a slot</b>. Rewrite the line instead.</p>
+      <p lang="zh-Hant">Brannon 等（2023）分析 319.57 小時的專業配音，發現配音員重視<b>語音自然度與翻譯品質</b>，勝過字數對應與對嘴；他們很少改變語速，也很少為了配合時長犧牲翻譯品質。給 LinguaDub 使用者的啟示：<b>不要硬把文字塞進時段</b>，應該改寫句子。</p>
+    </div>
+  </div>
+
+  <h3 class="t"><span lang="en">Running LinguaDub</span><span lang="zh-Hant">安裝與執行 LinguaDub</span></h3>
+  <div class="grid g2">
+    <div>
+      <p><b>Google Colab</b> <span lang="en">(set runtime to GPU)</span><span lang="zh-Hant">（執行環境設為 GPU）</span></p>
+<pre>!apt-get -qq install ffmpeg
+!git clone https://github.com/digimarketingai/full-code.git
+%cd full-code
+!pip install -q -r requirements.txt
+%run app.py</pre>
+      <p><b>Local · 本機</b></p>
+<pre># install ffmpeg first
+git clone https://github.com/digimarketingai/full-code.git
+cd full-code
+python -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python app.py</pre>
+    </div>
+    <div>
+      <div class="note red"><b class="t"><span lang="en">⚠️ Before you start</span><span lang="zh-Hant">⚠️ 開始前注意</span></b>
+        <ul>
+          <li><span lang="en">The README's clone command points to <code>digimarketingai/full-code</code>, not <code>LinguaDub</code>. Check which repository contains <code>app.py</code>. If the link fails, clone <code>https://github.com/digimarketingai/LinguaDub.git</code> instead.</span><span lang="zh-Hant">README 的 clone 指令指向 <code>full-code</code> 而非 <code>LinguaDub</code>，請確認哪個儲存庫有 <code>app.py</code>；若連結失效，請改 clone <code>https://github.com/digimarketingai/LinguaDub.git</code>。</span></li>
+          <li><span lang="en">Requirements: Python 3.10–3.12 and ffmpeg. An NVIDIA GPU is recommended; it runs on CPU but very slowly. NLLB needs about 2.4 GB of disk on first use, plus space for the XTTS and Whisper models.</span><span lang="zh-Hant">需求：Python 3.10–3.12 與 ffmpeg；建議使用 NVIDIA GPU（CPU 也可執行，但非常慢）；NLLB 首次使用約需 2.4 GB 空間，另加 XTTS 與 Whisper 模型。</span></li>
+          <li><span lang="en">XTTS v2 uses the <b>Coqui Public Model License (non-commercial)</b>. Check it before any commercial use.</span><span lang="zh-Hant">XTTS v2 採用 <b>Coqui Public Model License（非商業）</b>，商業用途前請先確認授權。</span></li>
+          <li><span lang="en"><b>Only clone voices you have permission to use.</b> For classroom work, record your own voice. Don't clone the comedian's voice without consent.</span><span lang="zh-Hant"><b>只複製已獲授權的聲音。</b>課堂練習請錄自己的聲音，未經同意不得複製表演者的聲音。</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PRACTICE ================= -->
+<section id="practice">
+  <div class="kicker">Practice · 練習</div>
+  <h2 class="t"><span lang="en">Student tasks, rubric, checklist and quiz</span><span lang="zh-Hant">學生任務、評分標準、檢核表與測驗</span></h2>
+
+  <div class="grid g2">
+    <div class="card"><span class="tag">Task 1 · 30 min</span><h4 class="t"><span lang="en">MT error annotation</span><span lang="zh-Hant">機翻錯誤標註</span></h4>
+      <p lang="en">Run segment A through two engines (e.g. Google Translate and an LLM). Annotate each output with MQM categories and severity (minor / major / critical).</p><p lang="zh-Hant">將 A 段分別交給兩個引擎（如 Google 翻譯與一個 LLM），以 MQM 類別與嚴重度（輕微／嚴重／重大）標註。</p></div>
+    <div class="card"><span class="tag">Task 2 · 30 min</span><h4 class="t"><span lang="en">Three pun strategies</span><span lang="zh-Hant">三種雙關策略</span></h4>
+      <p lang="en">Write three versions of the 面膜 punchline: pun→pun, pun→non-pun humour, and pun→zero. Each must be 42 characters or fewer per line. Explain which one you'd submit and why.</p><p lang="zh-Hant">為「面膜」笑點寫三個版本：雙關→雙關、雙關→非雙關幽默、雙關→省略，每行不超過 42 字；說明你會交哪一版及理由。</p></div>
+    <div class="card"><span class="tag">Task 3 · 45 min</span><h4 class="t"><span lang="en">Spotting & CPS</span><span lang="zh-Hant">上時間軸與 CPS</span></h4>
+      <p lang="en">Time segment B against the real audio in Subtitle Edit or Aegisub. Report the CPS for each event and justify any line you cut.</p><p lang="zh-Hant">在 Subtitle Edit 或 Aegisub 中依實際音訊為 B 段上時間軸，回報每個字幕事件的 CPS，並說明刪減理由。</p></div>
+    <div class="card"><span class="tag">Task 4 · 90 min</span><h4 class="t"><span lang="en">LinguaDub dubbing lab</span><span lang="zh-Hant">LinguaDub 配音實作</span></h4>
+      <p lang="en">Dub a 30-second clip using your own voice. Post-edit at checkpoints A, B and C. Submit the before/after scripts and a 300-word reflection on what the AI got wrong.</p><p lang="zh-Hant">用自己的聲音為 30 秒片段配音，在檢查點 A、B、C 進行譯後編輯。繳交修改前後腳本與 300 字反思，說明 AI 哪裡出錯。</p></div>
+  </div>
+
+  <h3 class="t"><span lang="en">Assessment rubric</span><span lang="zh-Hant">評分標準</span></h3>
+  <div class="tablewrap"><table>
+    <tr><th>Criterion · 項目</th><th>%</th><th>Excellent · 優秀</th><th>Needs work · 待加強</th></tr>
+    <tr><td>Accuracy 正確性</td><td>30</td><td>No meaning errors; MT errors all caught · 無意義錯誤，機翻錯誤全數找出</td><td>Keeps MT mistranslations · 保留機翻誤譯</td></tr>
+    <tr><td>Humour effect 幽默效果</td><td>20</td><td>The punchline lands in English · 笑點在英文中成立</td><td>Literal; the joke disappears · 直譯，笑點消失</td></tr>
+    <tr><td>Readability 可讀性</td><td>20</td><td>Within CPS/CPL limits; good line breaks · 符合 CPS／CPL，斷行佳</td><td>Too long; bad line breaks · 過長、斷行差</td></tr>
+    <tr><td>Register 語域</td><td>15</td><td>Natural, spoken stand-up voice · 自然的脫口秀口語</td><td>Stiff, written style · 生硬書面語</td></tr>
+    <tr><td>Reflection 反思</td><td>15</td><td>Cites research; explains decisions · 引用文獻、說明決策</td><td>Only describes · 僅描述</td></tr>
+  </table></div>
+
+  <h3 class="t"><span lang="en">✅ Post-editing checklist (saves automatically)</span><span lang="zh-Hant">✅ 譯後編輯檢核表（自動儲存）</span></h3>
+  <div class="card check" id="checklist"></div>
+
+  <h3 class="t"><span lang="en">📝 Self-check quiz</span><span lang="zh-Hant">📝 自我測驗</span></h3>
+  <div id="quiz"></div>
+  <p id="score" style="font-weight:700"></p>
+
+  <h3 class="t"><span lang="en">Glossary</span><span lang="zh-Hant">術語表</span></h3>
+  <div class="tablewrap"><table id="glossary"></table></div>
+</section>
+
+<!-- ================= REFERENCES ================= -->
+<section id="refs">
+  <div class="kicker">References · 參考文獻</div>
+  <h2 class="t"><span lang="en">Academic and professional sources</span><span lang="zh-Hant">學術與專業文獻</span></h2>
+  <p style="font-size:.88rem;color:var(--muted)"><span class="refs"><span class="v">✓</span></span> <span lang="en">= details and link checked while building this page. Check page numbers of the other entries before citing them.</span><span lang="zh-Hant">＝製作本頁時已核對書目資料與連結；其他文獻引用前請自行核對頁碼。</span></p>
+  <ol class="refs">
+    <li>Attardo, S., & Raskin, V. (1991). Script theory revis(it)ed: Joke similarity and joke representation model. <i>Humor, 4</i>(3–4), 293–347.</li>
+    <li><span class="v">✓</span> Brannon, W., Virkar, Y., & Thompson, B. (2023). Dubbing in practice: A large scale study of human localization with insights for automatic dubbing. <i>Transactions of the ACL, 11</i>. <a href="https://doi.org/10.1162/tacl_a_00551" target="_blank" rel="noopener">doi:10.1162/tacl_a_00551</a></li>
+    <li>Bywood, L., Georgakopoulou, P., & Etchegoyhen, T. (2017). Embracing the threat: Machine translation as a solution for subtitling. <i>Perspectives, 25</i>(3), 492–508.</li>
+    <li><span class="v">✓</span> Casanova, E., et al. (2024). XTTS: A massively multilingual zero-shot text-to-speech model. <i>Interspeech 2024</i>. <a href="https://arxiv.org/abs/2406.04904" target="_blank" rel="noopener">arXiv:2406.04904</a></li>
+    <li><span class="v">✓</span> Chen, S., & Hu, X. (2026). Evaluating the quality of AI-generated subtitle translations from a reception-oriented perspective: A comparative study of ChatGPT, human, and neural machine translations in sitcoms. <i>Humanities and Social Sciences Communications, 13</i>, 748. <a href="https://www.nature.com/articles/s41599-026-07414-6" target="_blank" rel="noopener">nature.com</a></li>
+    <li>Chiaro, D. (Ed.). (2010). <i>Translation, humour and the media</i>. Continuum.</li>
+    <li>Delabastita, D. (1996). Introduction. <i>The Translator, 2</i>(2), 127–139 (Special issue: Wordplay and translation).</li>
+    <li>Díaz Cintas, J., & Remael, A. (2021). <i>Subtitling: Concepts and practices</i>. Routledge.</li>
+    <li>Freitag, M., Foster, G., Grangier, D., Ratnakar, V., Tan, Q., & Macherey, W. (2021). Experts, errors, and context: A large-scale study of human evaluation for machine translation. <i>TACL, 9</i>, 1460–1474.</li>
+    <li>Guerberof-Arenas, A., & Toral, A. (2022). Creativity in translation: Machine translation as a constraint for literary texts. <i>Translation Spaces, 11</i>(2), 184–212.</li>
+    <li>ISO. (2017). <i>ISO 18587:2017 Translation services: Post-editing of machine translation output: Requirements</i>.</li>
+    <li>Ji, Z., et al. (2023). Survey of hallucination in natural language generation. <i>ACM Computing Surveys, 55</i>(12), 1–38.</li>
+    <li><span class="v">✓</span> Karakanta, A., Bentivogli, L., Cettolo, M., Negri, M., & Turchi, M. (2022). Post-editing in automatic subtitling: A subtitlers' perspective. <i>Proceedings of EAMT 2022</i>. <a href="https://aclanthology.org/2022.eamt-1.29/" target="_blank" rel="noopener">ACL Anthology</a></li>
+    <li><span class="v">✓</span> Karakanta, A., Cettolo, M., Negri, M., & Bentivogli, L. (2024). Evaluating automatic subtitling: Correlating post-editing effort and automatic metrics. <i>Proceedings of LREC-COLING 2024</i>.</li>
+    <li>Kenny, D. (Ed.). (2022). <i>Machine translation for everyone: Empowering users in the age of artificial intelligence</i>. Language Science Press.</li>
+    <li>Kocmi, T., & Federmann, C. (2023). Large language models are state-of-the-art evaluators of translation quality. <i>Proceedings of EAMT 2023</i>.</li>
+    <li>Koponen, M., Sulubacak, U., Vitikainen, K., & Tiedemann, J. (2020). MT for subtitling: User evaluation of post-editing productivity. <i>Proceedings of EAMT 2020</i>.</li>
+    <li>Lakew, S. M., et al. (2022). Isometric MT: Neural machine translation for automatic dubbing. <i>ICASSP 2022</i>.</li>
+    <li>NLLB Team. (2024). Scaling neural machine translation to 200 languages. <i>Nature, 630</i>, 841–846.</li>
+    <li>Pedersen, J. (2017). The FAR model: Assessing quality in interlingual subtitling. <i>Journal of Specialised Translation, 28</i>, 210–229.</li>
+    <li><span class="v">✓</span> Pun intended: Multi-agent translation of wordplay with contrastive learning and phonetic-semantic embeddings (2025). <i>CLEF JOKER 2025 Task 2</i>. <a href="https://arxiv.org/abs/2507.06506" target="_blank" rel="noopener">arXiv:2507.06506</a></li>
+    <li>Radford, A., Kim, J. W., Xu, T., Brockman, G., McLeavey, C., & Sutskever, I. (2023). Robust speech recognition via large-scale weak supervision. <i>ICML 2023</i>.</li>
+    <li>Toral, A. (2019). Post-editese: An exacerbated translationese. <i>Proceedings of MT Summit XVII</i>.</li>
+    <li><span class="v">✓</span> Vincent, S., et al. (2024). A case study on contextual machine translation in a professional scenario of subtitling. <i>Proceedings of EAMT 2024</i>. <a href="https://arxiv.org/abs/2407.00108" target="_blank" rel="noopener">arXiv:2407.00108</a></li>
+    <li>Wilken, P., Georgakopoulou, P., & Matusov, E. (2022). SubER: A metric for automatic evaluation of subtitle quality. <i>Proceedings of IWSLT 2022</i>.</li>
+    <li>Tools & guides: Netflix Partner Help Center, <i>Timed Text Style Guides</i> (English; Traditional Chinese – Taiwan). LinguaDub Studio: <a href="https://github.com/digimarketingai/LinguaDub" target="_blank" rel="noopener">github.com/digimarketingai/LinguaDub</a>.</li>
+  </ol>
+</section>
+</main>
+
+<footer>
+  <span lang="en">Teaching resource for MA Audiovisual Translation · The video clip is embedded from YouTube for educational analysis and remains the property of its owner.</span>
+  <span lang="zh-Hant">碩士班視聽翻譯教學資源 · 影片由 YouTube 嵌入，僅供教學分析，版權屬原權利人。</span>
+</footer>
+
+<script>
+/* ========== Language mode ========== */
+let MODE = localStorage.getItem('subcomedy-mode') || 'both';
+const T = o => MODE==='en' ? o.en : MODE==='zh' ? o.zh : `${o.en}<br><small style="color:#64748b">${o.zh}</small>`;
+const TT = o => MODE==='zh' ? o.zh : MODE==='en' ? o.en : `${o.en} · ${o.zh}`; // single-line (SVG/labels)
+function setMode(m){
+  MODE=m; localStorage.setItem('subcomedy-mode',m);
+  document.body.className='mode-'+m;
+  document.querySelectorAll('.langs button').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));
+  document.documentElement.lang = m==='zh' ? 'zh-Hant' : 'en';
+  renderAll();
+}
+document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+
+/* ========== Data: AI translation problems ========== */
+const problems = [
+  {tag:'Accuracy',c:'red',en:'Over-literal translation',zh:'過度直譯',den:'Translating word by word (弹幕 → "barrage", 直播间 → "booth"). Common in NMT output for dialogue (Vincent et al., 2024).',dzh:'逐字翻譯（彈幕→barrage、直播間→booth），對白的神經機器翻譯常見此問題（Vincent 等，2024）。'},
+  {tag:'Humour',c:'orange',en:'Humour flattening',zh:'幽默扁平化',den:'Puns become plain meaning. In CLEF JOKER 2023, the best system kept wordplay and meaning in only about 6% of cases.',dzh:'雙關變成平鋪直敘；CLEF JOKER 2023 最佳系統只有約 6% 同時保留雙關與原意。'},
+  {tag:'Context',c:'blue',en:'Loss of context',zh:'語境缺失',den:'Each sentence is translated alone, without the visuals, speaker, genre or earlier lines. Context-aware MT reduced context errors (Vincent et al., 2024).',dzh:'逐句翻譯，看不到畫面、說話者、類型與前文；加入語境的機器翻譯可減少語境錯誤（Vincent 等，2024）。'},
+  {tag:'ASR',c:'purple',en:'Speech recognition errors carried forward',zh:'語音辨識錯誤延續',den:'Errors in the automatic transcript (names, homophones such as 面/麵) carry into the translation. Subtitlers name speech processing as a main weakness (Karakanta et al., 2022).',dzh:'自動逐字稿的錯誤（人名、面／麵等同音字）會帶進譯文；字幕譯者認為語音處理是主要弱點（Karakanta 等，2022）。'},
+  {tag:'Accuracy',c:'red',en:'Hallucination',zh:'幻覺',den:'Fluent text that isn\'t in the source, such as "just not both together". LLM fluency hides the problem (Ji et al., 2023).',dzh:'流暢但原文沒有的內容（如「just not both together」）；LLM 的流暢度會掩蓋錯誤（Ji 等，2023）。'},
+  {tag:'Style',c:'blue',en:'Register mismatch',zh:'語域不符',den:'Stand-up comedy rendered as stiff written prose ("I found that…").',dzh:'把脫口秀譯成生硬書面語（「I found that…」）。'},
+  {tag:'Format',c:'green',en:'Ignoring subtitle constraints',zh:'忽略字幕限制',den:'Long run-on sentences with no line breaks, too many characters per second, and poor timing.',dzh:'冗長連寫句、未斷行、每秒字數過高、時間軸不當。'},
+  {tag:'Culture',c:'orange',en:'Culture-specific items',zh:'文化專屬項目',den:'Livestream e-commerce, 弹幕 and "???" culture need localization, not dictionary equivalents.',dzh:'直播帶貨、彈幕與「？？？」文化需要在地化，而非字典對等詞。'},
+  {tag:'Style',c:'blue',en:'Post-editese',zh:'譯後編輯腔',den:'Post-edited text keeps traces of the source structure and sounds less natural than human translation (Toral, 2019).',dzh:'譯後編輯的文字殘留原文結構，比人工翻譯更不自然（Toral, 2019）。'},
+  {tag:'Creativity',c:'orange',en:'Constrained creativity',zh:'創意受限',den:'An MT draft anchors the translator\'s choices and reduces creative solutions (Guerberof-Arenas & Toral, 2022).',dzh:'機翻初稿會左右譯者選擇，減少創意解法（Guerberof-Arenas & Toral, 2022）。'},
+  {tag:'Dubbing',c:'purple',en:'Squeezed timing in dubbing',zh:'配音時長被壓縮',den:'Forcing a long line into a short slot speeds up the TTS voice unnaturally, even though naturalness matters most to listeners (Brannon et al., 2023).',dzh:'把長句硬塞進短時段，使 TTS 語速不自然加快；然而自然度對聽眾最重要（Brannon 等，2023）。'},
+  {tag:'Evaluation',c:'green',en:'Misleading metrics',zh:'評估指標誤導',den:'Automatic metrics only moderately reflect subtitle post-editing effort (Karakanta et al., 2024). Human evaluation is still needed.',dzh:'自動指標只能中度反映字幕譯後編輯工作量（Karakanta 等，2024），仍須人工評估。'}
+];
+
+/* ========== Data: spot-the-error ========== */
+const segs = [
+  {t:'When I showed up '},
+  {t:'in the livestream booth',e:{type:{en:'Mistranslation (too literal)',zh:'誤譯（過度直譯）'},src:'直播间',fix:'on the livestream',why:{en:'直播间 means the livestream or channel, not a physical booth.',zh:'直播間指直播本身／頻道，不是實體攤位。'}}},
+  {t:' with '},
+  {t:'the mask',e:{type:{en:'Ambiguity / wrong word',zh:'歧義／用詞錯誤'},src:'面膜',fix:'holding face masks',why:{en:'"Mask" on its own could be a COVID or Halloween mask. "Face masks" is the product.',zh:'單用「mask」可能被理解成口罩或萬聖節面具，「face masks」才是保養品。'}}},
+  {t:', '},
+  {t:'the audience was excited to watch the livestream',e:{type:{en:'Meaning error + redundancy',zh:'意義錯誤＋冗贅'},src:'看直播的观众也很激动',fix:'the viewers got really excited',why:{en:'The viewers who were watching got excited. They weren\'t excited "to watch". "Livestream" is also repeated.',zh:'原文是「正在看直播的觀眾很激動」，不是「很期待看直播」；且重複了 livestream。'}}},
+  {t:', and '},
+  {t:'it was there that',e:{type:{en:'Mistranslated filler',zh:'誤譯填充語'},src:'就在那里',fix:'(omit)',why:{en:'在那里 here means "were busy doing something". It isn\'t a location.',zh:'此處「在那裡」表示正在做某事，不是地點。'}}},
+  {t:' the '},
+  {t:'barrage went wild',e:{type:{en:'Terminology + wrong subject',zh:'術語錯誤＋主語錯置'},src:'疯狂地发弹幕',fix:'The chat was going crazy.',why:{en:'"Barrage" means artillery fire to English readers. The viewers are the ones posting, and "the chat" is the natural term.',zh:'英語讀者看到「barrage」會聯想到砲火；發彈幕的是觀眾，「the chat」才是自然說法。'}}},
+  {t:', but '},
+  {t:'I found that',e:{type:{en:'Literalism / wordiness',zh:'直譯／冗詞'},src:'我发现',fix:'(omit)',why:{en:'It isn\'t needed in spoken English and slows down the punchline.',zh:'英語口語不需要，還會拖慢笑點節奏。'}}},
+  {t:' '},
+  {t:'there was no barrage discussing the product',e:{type:{en:'Lost emphasis + grammar',zh:'失去強調＋語法問題'},src:'没有一条弹幕在讨论产品',fix:'not a single comment was about the product',why:{en:'没有一条 means "not even one". Keep that emphasis with "not a single".',zh:'「沒有一條」強調「連一條都沒有」，應以「not a single」保留語氣。'}}},
+  {t:', it was all question marks. '},
+  {t:'[whole-sentence structure]',e:{type:{en:'Run-on / subtitle format',zh:'連寫句／字幕格式'},src:'整句',fix:'Split into 4 subtitle events',why:{en:'One sentence of 200+ characters joined by commas can\'t be read in time as subtitles.',zh:'200 多字以逗號串成一句，觀眾來不及讀完字幕。'}}}
+];
+const found = new Set();
+
+/* ========== Data: tactics ========== */
+const tactics = [
+ {ico:'🎯',en:'Accuracy & meaning checks',zh:'正確性與意義檢查',items:[
+  ['Compare source and target line by line before you polish style','先逐句比對原文與譯文，再潤飾文風'],
+  ['Find added content: delete anything not in the source (e.g. "just not both together")','找出添加內容：刪除原文沒有的文字（如「just not both together」）'],
+  ['Find omissions: make sure every point of the joke is still there','找出遺漏：確認笑點每個環節都在'],
+  ['Check who does each action (viewers post comments; "barrage" doesn\'t)','檢查動作主體（發留言的是觀眾，不是 barrage）'],
+  ['Keep intensifiers: 没有一条 → "not a single"','保留強調語：沒有一條 → not a single']]},
+ {ico:'🌏',en:'Terminology & localization',zh:'術語與在地化',items:[
+  ['Use platform terms viewers know: 弹幕 → "chat/comments"','使用觀眾熟悉的平台用語：彈幕 → chat／comments'],
+  ['Make terms unambiguous: "mask" → "face masks"','消除歧義：mask → face masks'],
+  ['Make cultural references clear in context, never with footnotes','在語境中處理文化指涉，字幕不用註腳'],
+  ['Keep a term list (glossary) so terms stay consistent across the episode','建立術語表，維持整集用詞一致']]},
+ {ico:'😂',en:'Humour strategies',zh:'幽默策略',items:[
+  ['Identify the humour mechanism first: pun, irony, self-mockery or rule of three','先辨識幽默機制：雙關、反諷、自嘲、三段式'],
+  ['Translate the effect, not the words (functional equivalence)','翻譯效果而非字面（功能對等）'],
+  ['Choose a Delabastita strategy using the decision tree','依決策樹選擇 Delabastita 策略'],
+  ['Put the punchline at the very end of the subtitle event','把笑點放在字幕事件的最後'],
+  ['Use the picture: if the screen shows the masks, the subtitle can say less','善用畫面：畫面有面膜時，字幕可少說']]},
+ {ico:'✂️',en:'Condensation & reduction',zh:'濃縮與刪減',items:[
+  ['Partial reduction: cut fillers (就, 在那里, 我发现)','部分刪減：刪除填充語（就、在那裡、我發現）'],
+  ['Total reduction: drop repeated information ("watch the livestream" twice)','完全刪減：刪除重複資訊（兩次 livestream）'],
+  ['Choose shorter synonyms ("got excited" instead of "became very excited")','選擇較短的同義詞'],
+  ['Turn noun phrases into verbs ("posted comments" → "the chat went crazy")','名詞結構改為動詞']]},
+ {ico:'📐',en:'Segmentation & line breaks',zh:'斷句與斷行',items:[
+  ['Keep each line at 42 characters or fewer (English) or 16 or fewer (Traditional Chinese)','英文每行 ≤ 42 字，繁中 ≤ 16 字'],
+  ['Break at grammar boundaries; never split an article from its noun or a verb from its object','依語法邊界斷行；不拆冠詞與名詞、動詞與受詞'],
+  ['Prefer a "pyramid" shape: short top line, longer bottom line','偏好上短下長的金字塔形'],
+  ['Make each subtitle event make sense on its own','每個字幕事件都要能獨立理解']]},
+ {ico:'⏱️',en:'Timing & spotting',zh:'時間軸與上字幕',items:[
+  ['Keep reading speed within the client\'s CPS limit (here 14.83)','閱讀速度在客戶 CPS 上限內（本例 14.83）'],
+  ['Show each subtitle for at least about 5/6 s and at most 7 s','字幕顯示至少約 5/6 秒、最多 7 秒'],
+  ['Avoid running a subtitle across a shot change','避免字幕跨越鏡頭切換'],
+  ['Time the punchline subtitle to appear with the spoken punchline, not before it','笑點字幕與口說笑點同步出現，不要提前']]},
+ {ico:'🗣️',en:'Register & voice',zh:'語域與聲音',items:[
+  ['Keep the comedian\'s spoken style, using contractions ("you\'re", "I\'d")','保留表演者口語風格，使用縮寫'],
+  ['Remove the written feel of post-editese ("I found that…")','去除譯後編輯腔（I found that…）'],
+  ['Read the subtitles aloud with the video to test rhythm','對著影片朗讀字幕，測試節奏']]},
+ {ico:'🤖',en:'AI-specific checks',zh:'AI 專屬檢查',items:[
+  ['Check the ASR transcript before translating (names, homophones, laughter)','翻譯前先校對語音辨識逐字稿（人名、同音字、笑聲）'],
+  ['Give the LLM context in the prompt: genre, audience, length limits and earlier lines','提示詞提供語境：類型、觀眾、字數限制、前文'],
+  ['Ask for several options and choose one; don\'t accept the first output','要求多個選項再挑選，不要直接接受第一個輸出'],
+  ['Don\'t trust fluency: fluent LLM output can still hide hallucinations','別被流暢度騙了：LLM 輸出流暢也可能藏有幻覺'],
+  ['Don\'t over-edit: keep correct MT and fix only what\'s wrong','避免過度編輯：正確的機翻予以保留，只改錯誤']]},
+ {ico:'⚖️',en:'Ethics & professional practice',zh:'倫理與專業實務',items:[
+  ['Get consent before cloning any voice','複製任何聲音前取得同意'],
+  ['Check model licences (XTTS v2 = non-commercial)','確認模型授權（XTTS v2 為非商業）'],
+  ['Tell clients when AI was used','向客戶揭露 AI 使用情形'],
+  ['Protect confidential client media; don\'t upload it to public AI tools','保護客戶機密影音，勿上傳至公開 AI 工具']]}
+];
+
+/* ========== Checklist, quiz, glossary ========== */
+const checklist = [
+ ['ASR transcript verified against the audio','逐字稿已對照音訊校對'],
+ ['No meaning errors, additions or omissions','無意義錯誤、添加或遺漏'],
+ ['Terminology localized (chat, face masks)','術語已在地化（chat、face masks）'],
+ ['Humour mechanism identified and recreated','已辨識並重現幽默機制'],
+ ['Punchline at the end of its own subtitle','笑點位於字幕事件末尾'],
+ ['Lines ≤ 42 characters, 2 lines maximum','每行 ≤ 42 字、最多兩行'],
+ ['CPS ≤ target for every event','每個字幕事件 CPS ≤ 目標值'],
+ ['Natural line breaks at grammar boundaries','依語法邊界自然斷行'],
+ ['Spoken register; no post-editese','口語語域、無譯後編輯腔'],
+ ['(Dubbing) Audio checked for stress, pauses and speed','（配音）已試聽重音、停頓與語速'],
+ ['(Dubbing) Voice consent and licence checked','（配音）已確認聲音授權與模型授權']
+];
+const quiz = [
+ {q:{en:'Why is "barrage" a poor rendering of 弹幕?',zh:'為何「barrage」不適合翻譯「彈幕」？'},o:[{en:'It is too short',zh:'太短'},{en:'It is a literal MT choice that English readers take to mean artillery fire or a flood of attacks',zh:'是機翻直譯，英語讀者會聯想到砲火或攻擊'},{en:'It is offensive',zh:'具冒犯性'},{en:'It is the wrong part of speech',zh:'詞性錯誤'}],a:1,x:{en:'Use the term viewers already know: "the chat" or "comments".',zh:'應使用觀眾熟悉的說法：the chat 或 comments。'}},
+ {q:{en:'In Traditional Chinese subtitles, why is the 面/膜 pun weaker in writing?',zh:'繁中字幕裡，為何「面／膜」雙關在文字上減弱？'},o:[{en:'膜 has a different reading',zh:'膜讀音不同'},{en:'Noodles is written 麵, not 面',zh:'麵條寫作「麵」而非「面」'},{en:'Taiwan has no face masks',zh:'臺灣沒有面膜'},{en:'Traditional script cannot show puns',zh:'繁體無法表現雙關'}],a:1,x:{en:'The pun still works by sound, but the written characters no longer match.',zh:'讀音仍相同，但字形已不同。'}},
+ {q:{en:'A subtitle with 46 characters is shown for 3.10 s. What is its CPS?',zh:'46 字的字幕顯示 3.10 秒，CPS 是多少？'},o:[{en:'≈ 12.1',zh:'約 12.1'},{en:'≈ 14.8',zh:'約 14.8'},{en:'≈ 17.2',zh:'約 17.2'},{en:'≈ 20.0',zh:'約 20.0'}],a:1,x:{en:'46 ÷ 3.10 = 14.84 CPS.',zh:'46 ÷ 3.10 = 14.84。'}},
+ {q:{en:'Brannon et al. (2023) found that professional dubbers put most weight on…',zh:'Brannon 等（2023）發現專業配音最重視……'},o:[{en:'Exact lip-sync',zh:'精準對嘴'},{en:'Matching character length',zh:'字數對應'},{en:'Vocal naturalness and translation quality',zh:'語音自然度與翻譯品質'},{en:'Faster speaking speed',zh:'加快語速'}],a:2,x:{en:'So rewrite the line instead of cramming it into the slot.',zh:'所以應改寫句子，不要硬塞進時段。'}},
+ {q:{en:'Which LinguaDub component clones the voice?',zh:'LinguaDub 中哪個元件負責聲音複製？'},o:[{en:'Whisper',zh:'Whisper'},{en:'NLLB',zh:'NLLB'},{en:'MyMemory',zh:'MyMemory'},{en:'XTTS v2',zh:'XTTS v2'}],a:3,x:{en:'Whisper transcribes, NLLB/MyMemory/Google translate, and XTTS v2 synthesizes the cloned voice.',zh:'Whisper 轉錄、NLLB／MyMemory／Google 翻譯、XTTS v2 合成複製的聲音。'}},
+ {q:{en:'ISO 18587 distinguishes between…',zh:'ISO 18587 區分了……'},o:[{en:'Light and full post-editing',zh:'輕度與完整譯後編輯'},{en:'Subtitling and dubbing',zh:'字幕與配音'},{en:'Human and machine evaluation',zh:'人工與機器評估'},{en:'Simplified and Traditional Chinese',zh:'簡體與繁體'}],a:0,x:{en:'Light PE gives understandable output; full PE gives output comparable to human translation.',zh:'輕度：可理解；完整：達到與人工翻譯相當的品質。'}},
+ {q:{en:'Before using LinguaDub output commercially, you must check…',zh:'商業使用 LinguaDub 產出前，必須確認……'},o:[{en:'Only the video resolution',zh:'只看影片解析度'},{en:'The XTTS v2 non-commercial licence and consent for the voice',zh:'XTTS v2 非商業授權與聲音同意'},{en:'Nothing; it is open source',zh:'不需要，它是開源的'},{en:'Only the Python version',zh:'只看 Python 版本'}],a:1,x:{en:'Open-source code doesn\'t mean the model or the voice is free to use commercially.',zh:'程式碼開源不代表模型或聲音可以自由商用。'}}
+];
+const answers = {};
+const glossary = [
+ ['CPS (characters per second)','每秒字數','Reading-speed measure: characters ÷ duration','閱讀速度：字數 ÷ 時長'],
+ ['CPL (characters per line)','每行字數','Maximum characters in one subtitle line','單行字幕的字數上限'],
+ ['Spotting','上字幕時間軸','Setting in and out times for each subtitle','設定每條字幕的出入點'],
+ ['Danmu 弹幕','彈幕','Comments scrolling across the video screen','飄過畫面的即時留言'],
+ ['Light / Full PE','輕度／完整譯後編輯','ISO 18587 post-editing levels','ISO 18587 的譯後編輯等級'],
+ ['MQM','多維品質指標','Multidimensional Quality Metrics error typology','錯誤分類與評分框架'],
+ ['Hallucination','幻覺','Fluent output that isn\'t supported by the source','原文沒有依據的流暢輸出'],
+ ['Post-editese','譯後編輯腔','Traces of MT left in post-edited text','譯後編輯文本殘留的機翻痕跡'],
+ ['Isochrony','時長同步','Dubbed speech matching the length of the original speech','配音與原聲時長一致'],
+ ['ASR','自動語音辨識','Automatic speech recognition (e.g. Whisper)','如 Whisper'],
+ ['Zero-shot TTS / voice cloning','零樣本語音合成／聲音複製','Synthesizing a voice from a short sample (e.g. XTTS v2)','以短樣本合成聲音（如 XTTS v2）'],
+ ['Compensation','補償','Recreating lost humour at a different point in the text','在別處重建失去的幽默']
+];
+
+/* ========== Renderers ========== */
+function renderProblems(){
+  document.getElementById('problemCards').innerHTML = problems.map(p=>`
+   <div class="card"><span class="tag ${p.c}">${p.tag}</span><h4>${T({en:p.en,zh:p.zh})}</h4>
+   <p style="margin:0;font-size:.92rem">${T({en:p.den,zh:p.dzh})}</p></div>`).join('');
+}
+function renderSegs(){
+  const box=document.getElementById('mtSentence'); box.innerHTML='';
+  segs.forEach((s,i)=>{
+    if(!s.e){box.append(document.createTextNode(s.t));return;}
+    const b=document.createElement('button'); b.className='seg'+(found.has(i)?' found':''); b.textContent=s.t;
+    b.onclick=()=>{found.add(i);b.classList.add('found');showFb(s.e);updateProg();};
+    box.append(b);
+  });
+  updateProg();
+}
+function showFb(e){
+  document.getElementById('feedback').innerHTML=`
+   <span class="tag red">${TT(e.type)}</span>
+   <p><b>${TT({en:'Source',zh:'原文'})}:</b> ${e.src} &nbsp;→&nbsp; <b>${TT({en:'Fix',zh:'修正'})}:</b> <ins>${e.fix}</ins></p>
+   <p style="margin:0">${T(e.why)}</p>`;
+}
+function updateProg(){
+  const total=segs.filter(s=>s.e).length;
+  document.getElementById('prog').style.width=(found.size/total*100)+'%';
+  if(found.size===total) document.getElementById('feedback').insertAdjacentHTML('beforeend',`<p class="ok"><b>🎉 ${TT({en:'All errors found!',zh:'全部找到了！'})}</b></p>`);
+}
+function renderChart(){
+  const data=[
+   {k:{en:'Accuracy',zh:'正確性'},v:3,c:'#b91c1c'},{k:{en:'Terminology',zh:'術語'},v:2,c:'#c2410c'},
+   {k:{en:'Grammar/Syntax',zh:'語法'},v:2,c:'#1d4ed8'},{k:{en:'Style/Register',zh:'文風語域'},v:2,c:'#7e22ce'},
+   {k:{en:'Subtitle format',zh:'字幕格式'},v:1,c:'#0f766e'},{k:{en:'Humour effect',zh:'幽默效果'},v:1,c:'#ca8a04'}];
+  const W=760,rowH=44,left=200,max=3,H=data.length*rowH+40;
+  let s=`<svg viewBox="0 0 ${W} ${H}" font-size="13">`;
+  data.forEach((d,i)=>{
+    const y=20+i*rowH, w=(W-left-60)*d.v/max;
+    s+=`<text x="${left-10}" y="${y+22}" text-anchor="end" font-weight="600">${TT(d.k)}</text>
+        <rect x="${left}" y="${y+4}" width="${w}" height="26" rx="6" fill="${d.c}"/>
+        <text x="${left+w+8}" y="${y+22}" font-weight="700">${d.v}</text>`;
+  });
+  document.getElementById('errChart').innerHTML=s+'</svg>';
+}
+function renderTimeline(){
+  const ev=[["When I showed up on the livestream","holding face masks,"],["the viewers got really excited.","The chat was going crazy."],["But not a single comment","was about the product."],["It was all question marks."]];
+  const cps=14.83, cols=['#1d4ed8','#7e22ce','#0f766e','#c2410c'];
+  let t=0; const items=ev.map((l,i)=>{const n=l.join('').length,d=n/cps,o={i,l,n,d,s:t};t+=d;return o;});
+  const W=900,left=20,scale=(W-40)/t;
+  let s=`<svg viewBox="0 0 ${W} 200" font-size="12">`;
+  for(let x=0;x<=Math.ceil(t);x++){const px=left+x*scale;s+=`<line x1="${px}" y1="30" x2="${px}" y2="150" stroke="#e2e8f0"/><text x="${px}" y="170" text-anchor="middle" fill="#64748b">${x}s</text>`;}
+  items.forEach(o=>{const x=left+o.s*scale,w=o.d*scale-3;
+    s+=`<rect x="${x}" y="45" width="${w}" height="90" rx="8" fill="${cols[o.i]}" opacity=".9"/>
+        <text x="${x+8}" y="65" fill="#fff" font-weight="700">#${o.i+1} · ${o.n} ch · ${o.d.toFixed(3)} s</text>
+        ${o.l.map((ln,j)=>`<text x="${x+8}" y="${90+j*18}" fill="#fff" font-size="11">${ln.length>30?ln.slice(0,29)+'…':ln}</text>`).join('')}`;});
+  s+=`<text x="${W/2}" y="20" text-anchor="middle" font-weight="700">${TT({en:`Total ${items.reduce((a,b)=>a+b.n,0)} characters · ${t.toFixed(3)} s · ${cps} CPS`,zh:`共 ${items.reduce((a,b)=>a+b.n,0)} 字 · ${t.toFixed(3)} 秒 · 每秒 ${cps} 字`})}</text>
+        <text x="${W/2}" y="192" text-anchor="middle" fill="#64748b">${TT({en:'Calculated durations, not real timecodes',zh:'計算值，非實際時間碼'})}</text></svg>`;
+  document.getElementById('timeline').innerHTML=s;
+}
+function renderTactics(){
+  document.getElementById('tactics').innerHTML=tactics.map((g,i)=>`
+   <details ${i<2?'open':''}><summary>${g.ico} ${TT({en:g.en,zh:g.zh})} <span class="tag" style="margin-left:auto">${g.items.length}</span></summary>
+   <div class="body"><ul>${g.items.map(it=>`<li>${T({en:it[0],zh:it[1]})}</li>`).join('')}</ul></div></details>`).join('');
+}
+function renderChecklist(){
+  const saved=JSON.parse(localStorage.getItem('subcomedy-check')||'{}');
+  const box=document.getElementById('checklist');
+  box.innerHTML=checklist.map((c,i)=>`<label><input type="checkbox" data-i="${i}" ${saved[i]?'checked':''}><span>${T({en:c[0],zh:c[1]})}</span></label>`).join('')+
+   `<p id="ckc" style="font-weight:700;margin:8px 0 0"></p><button class="btn ghost" id="ckr" style="margin-top:6px">${TT({en:'Reset',zh:'重設'})}</button>`;
+  const upd=()=>{const n=box.querySelectorAll('input:checked').length;document.getElementById('ckc').textContent=`${n} / ${checklist.length}`;};
+  box.querySelectorAll('input').forEach(cb=>cb.onchange=()=>{saved[cb.dataset.i]=cb.checked;localStorage.setItem('subcomedy-check',JSON.stringify(saved));upd();});
+  document.getElementById('ckr').onclick=()=>{localStorage.removeItem('subcomedy-check');renderChecklist();};
+  upd();
+}
+function renderQuiz(){
+  const box=document.getElementById('quiz');
+  box.innerHTML=quiz.map((q,i)=>`<div class="q"><b>Q${i+1}. ${T(q.q)}</b>
+    ${q.o.map((o,j)=>`<button data-q="${i}" data-o="${j}" class="${answers[i]!==undefined?(j===q.a?'right':(answers[i]===j?'wrong':'')):''}">${TT(o)}</button>`).join('')}
+    <div class="exp">${answers[i]!==undefined?'💡 '+T(q.x):''}</div></div>`).join('');
+  box.querySelectorAll('button').forEach(b=>b.onclick=()=>{const qi=+b.dataset.q;if(answers[qi]!==undefined)return;answers[qi]=+b.dataset.o;renderQuiz();});
+  const done=Object.keys(answers).length, right=Object.entries(answers).filter(([i,a])=>quiz[i].a===a).length;
+  document.getElementById('score').textContent=done?`${TT({en:'Score',zh:'得分'})}: ${right} / ${quiz.length}`:'';
+}
+function renderGlossary(){
+  document.getElementById('glossary').innerHTML=`<tr><th>${TT({en:'Term',zh:'術語'})}</th><th>${TT({en:'Definition',zh:'定義'})}</th></tr>`+
+   glossary.map(g=>`<tr><td><b>${g[0]}</b><br><span style="color:#64748b">${g[1]}</span></td><td>${T({en:g[2],zh:g[3]})}</td></tr>`).join('');
+}
+/* ========== CPS calculator ========== */
+function calcCPS(){
+  const txt=document.getElementById('cpsText').value, dur=parseFloat(document.getElementById('cpsDur').value)||0,
+        target=parseFloat(document.getElementById('cpsTarget').value)||14.83, cpl=parseInt(document.getElementById('cpsCpl').value)||42;
+  const lines=txt.split('\n'), chars=Array.from(txt.replace(/\n/g,'')).length, longest=Math.max(...lines.map(l=>Array.from(l).length));
+  const cps=dur>0?chars/dur:0, need=chars/target;
+  const cls=v=>v?'ok':'bad';
+  document.getElementById('cpsOut').innerHTML=`
+   <div><b>${chars}</b>${TT({en:'characters',zh:'字數'})}</div>
+   <div><b class="${cls(lines.length<=2)}">${lines.length}</b>${TT({en:'lines (≤2)',zh:'行數（≤2）'})}</div>
+   <div><b class="${cls(longest<=cpl)}">${longest}</b>${TT({en:'longest line',zh:'最長行'})}</div>
+   <div><b class="${cps<=target+0.005?'ok':'bad'}">${cps.toFixed(2)}</b>CPS</div>
+   <div><b>${need.toFixed(3)}s</b>${TT({en:'needed at target',zh:'目標所需時長'})}</div>
+   <div><b class="${dur>=0.833&&dur<=7?'ok':'warn'}">${dur.toFixed(2)}s</b>${TT({en:'duration (0.83–7)',zh:'時長（0.83–7）'})}</div>`;
+}
+['cpsText','cpsDur','cpsTarget','cpsCpl'].forEach(id=>document.getElementById(id).addEventListener('input',calcCPS));
+
+/* ========== Scrollspy ========== */
+const links=[...document.querySelectorAll('#nav a')];
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id));}}),{rootMargin:'-40% 0px -55% 0px'});
+document.querySelectorAll('main section').forEach(s=>obs.observe(s));
+
+function renderAll(){renderProblems();renderSegs();renderChart();renderTimeline();renderTactics();renderChecklist();renderQuiz();renderGlossary();calcCPS();}
+setMode(MODE);
+</script>
+</body>
+</html>
