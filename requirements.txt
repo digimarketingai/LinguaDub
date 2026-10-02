@@ -1,0 +1,11 @@
+coqui-tts
+faster-whisper
+gradio
+deep-translator
+transformers<5
+sentencepiece
+soundfile
+numpy
+requests
+nvidia-cublas-cu12
+nvidia-cudnn-cu12
