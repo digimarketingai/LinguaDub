@@ -18,7 +18,7 @@ Set the runtime to GPU, then run:
 !git clone https://github.com/digimarketingai/LinguaDub.git
 %cd LinguaDub
 !pip install -q -r requirements.txt
-%run app.py
+!python app.py
 ```
 
 ## Run locally
