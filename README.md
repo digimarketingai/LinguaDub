@@ -15,8 +15,8 @@ Pipeline: Whisper (transcribe) → MyMemory / NLLB / Google (translate) → XTTS
 Set the runtime to GPU, then run:
 ```python
 !apt-get -qq install ffmpeg
-!git clone https://github.com/digimarketingai/full-code.git
-%cd full-code
+!git clone https://github.com/digimarketingai/LinguaDub.git
+%cd LinguaDub
 !pip install -q -r requirements.txt
 %run app.py
 ```
